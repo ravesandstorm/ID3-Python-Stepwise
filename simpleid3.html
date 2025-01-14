@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ID3 Algorithm Implementation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 0.6rem;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        main {
+            padding: 2rem;
+        }
+
+        textarea {
+            width: 90%;
+            height: 169px;
+            background-color: #f8f8f8;
+            border: 2px solid #ccc;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-family: monospace;
+            resize: none;
+            display: flex;
+        }
+
+        button {
+            background-color: #3094ff;
+            color: white;
+            padding: 0.6rem 2rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition-duration: 0.4s;
+        }
+
+        button:hover {
+            background-color: #001cd1b2;
+            transition-duration: 0.4s;
+        }
+
+        button:active{
+            background-color: #777777;
+            color: rgb(50, 50, 50);
+            transition-duration: 0s;
+        }
+
+        .output {
+            width: 88%;
+            margin-top: 2rem;
+            padding: 1rem;
+            /* border: 1px solid #ccc; */
+            background-color: #F4F4F9;
+            white-space: pre-wrap;
+            font-family: monospace;
+            overflow-y: auto;
+        }
+
+        footer {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: #f1f1f1;
+            text-align: center;
+        }
+
+        .examples {
+            display: flex;
+            align-items: center;
+        }
+
+        .example-btn {
+            padding: 0.4rem 0.8rem;
+            margin-inline: 1rem;
+            background-color: #696969;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .example-btn:hover {
+            background-color: #3f3f3f;
+
+        }
+        .example-btn:active {
+            background-color: #9fcdff;
+            transition-duration: 0s;
+        }
+
+        .input-section {
+            margin-bottom: 2rem;
+            transition: all 0.3s;
+            align-items: center;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            header {
+                font-size: 1.2rem;
+                padding: 0.8rem;
+            }
+
+            button {
+                font-size: 0.9rem;
+                padding: 0.4rem 0.8rem;
+            }
+
+            textarea {
+                height: 120px;
+            }
+
+            .example-btn {
+                padding: 0.3rem 0.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h2>Information Gain Calculation (ID3)</h2>
+    </header>
+
+    <main>
+        <div class="examples">
+            <h2>Example Datasets:</h2>
+            <button class="example-btn" onclick="setExample(1)">Example 1</button>
+            <button class="example-btn" onclick="setExample(2)">Example 2</button>
+            <button class="example-btn" onclick="setExample(3)">Example 3</button>
+        </div>
+
+        <div class="input-section fade-in">
+            <h2>Input Column Names</h2>
+            <textarea style="height:20%;" id="inputColumns" placeholder="Columns go here..." required></textarea>
+
+            <h2>Input Dataset</h2>
+            <textarea id="inputData" placeholder="Data goes here..." required></textarea>
+        </div>
+
+        <button onclick="runID3()">Run ID3 Algorithm</button>
+        
+        <h2>Results</h2>
+        <div class="output" id="output"></div>
+    </main>
+
+    <footer>
+        <h2>How does it work?</h2>
+        <p>
+            The formulas show the calculation of finding the root node using the <a href="https://en.wikipedia.org/wiki/ID3_algorithm">
+            <strong>ID3 algorithm</strong></a>, a popular method for decision tree learning. 
+            It uses entropy and information gain to determine the optimal splits for creating a decision tree. Input column names 
+            and corresponding data to see step-by-step calculations!
+        </p>
+        <p>
+            <strong>The ID3 algorithm</strong> begins with the original set \(S\) as the <a href="https://en.wikipedia.org/wiki/Root_node">root 
+            node</a>. On each iteration of the algorithm, it iterates through every unused attribute of the set \(S\) and calculates the 
+            <a href="https://en.wikipedia.org/wiki/Entropy_(information_theory)">entropy</a> \(H(S)\) or the 
+            <a href="https://en.wikipedia.org/wiki/Information_gain_in_decision_trees">information gain</a> \(IG(S)\) of that attribute. It 
+            then selects the attribute which has the smallest entropy (or largest information gain) value. The set \(S\) is then split or 
+            partitioned by the selected attribute to produce subsets of the data. (For example, a node can be split into child nodes based 
+            upon the subsets of the population whose ages are less than 50, between 50 and 100, and greater than 100.) The algorithm continues 
+            to recurse on each subset, considering only attributes never selected before.
+        </p>
+        <p>There are two main formulas in use here, Entropy\((E)\) and Information Gain\((IG)\):</p>
+
+        <p>\(      E(S) = \displaystyle\sum\limits_{i=1}^n -P_i*log_2P_i     \)</p>
+        <p>where \(P_i\) = probability of choosing attribute \(i\) in column \(P\), and \(n\) is number of attributes in \(P\).</p>
+        <p>\(      IG(P) =  E(S) - \displaystyle\sum\limits_{i=1}^n p(S|P)*E(S|P)                    \)</p>
+        <p>where \(E(S)\) is the entropy of the column to be predicted (usually last), \(p(S|P)\) is the probability of the attribute P in its column and \(E(S|P)\) is the entropy of the attribute \(P\).</p>
+        <p>The second term of \(IG(P)\) can also be described as a weighted average of all the unique elements in a column. <a href="https://medium.com/codex/decision-tree-for-classification-entropy-and-information-gain-cd9f99a26e0d">Explanation with Example</a></p>
+    </footer>
+
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.3.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
+
+    <script>
+        function log(x){
+            return Math.log2(x);
+        }
+
+        function entropy(data, target = null) {
+            if (target === null) {
+                const total = data.length;
+                const counts = {};
+                data.forEach(value => counts[value] = (counts[value] || 0) + 1);
+                let ent = 0;
+                let entDetails = "";
+                for (const [value, count] of Object.entries(counts)) {
+                    const prob = count / total;
+                    ent -= prob * log(prob);
+                    entDetails += ` -(${count}/${total})*log(${count}/${total})`;
+                }
+                return { value: ent, details: `Entropy: ${ent.toFixed(4)} = ${entDetails}` };
+            } else {
+                const uniqueValues = [...new Set(data)];
+                const total = data.length;
+                const entropies = [];
+                let entDetails = "";
+
+                uniqueValues.forEach(val => {
+                    const indices = data.map((v, i) => (v === val ? i : -1)).filter(i => i !== -1);
+                    const subTarget = indices.map(i => target[i]);
+                    const subTotal = indices.length;
+
+                    const counts = {};
+                    subTarget.forEach(v => counts[v] = (counts[v] || 0) + 1);
+
+                    let subEnt = 0;
+                    let subDetails = "";
+                    for (const [subVal, subCount] of Object.entries(counts)) {
+                        const prob = subCount / subTotal;
+                        subEnt -= prob * log(prob);
+                        subDetails += ` -(${subCount}/${subTotal})*log(${subCount}/${subTotal})`;
+                    }
+                    entropies.push({
+                        value: subEnt,
+                        prob: subTotal / total,
+                        num: subTotal,
+                        den: total,
+                        details: `\nEntropy for '${val}': ${subEnt.toFixed(4)} = ${subDetails}`
+                    });
+                    entDetails += entropies[entropies.length - 1].details;
+                });
+
+                return { entropies, details: entDetails };
+            }
+        }
+
+        function setExample(exampleNumber) {
+            const examples = [
+                {
+                    columns: "Weather Parents Cash Exam Decision",
+                    data: "sunny visit rich yes cinema\nsunny no-visit rich no tennis\nwindy visit rich no cinema\nrainy visit poor yes cinema\nrainy no-visit rich no stay-in\nrainy visit poor no cinema\nwindy no-visit poor yes cinema\nwindy no-visit rich yes shopping\nwindy visit rich no cinema\nsunny no-visit rich no tennis\nsunny no-visit poor yes tennis"
+                },
+                {
+                    columns: "Outlook Temperature Humidity Windy Play",
+                    data: "sunny hot high false no\nsunny hot high true no\novercast hot high false yes\nrainy mild high false yes\nrainy cool normal false yes\nrainy cool normal true no\novercast cool normal true yes\nsunny mild high false no\nsunny cool normal false yes\nrainy mild normal false yes\nsunny mild normal true yes\novercast mild high true yes\novercast hot normal false yes\nrainy mild high true no"
+                },
+                {
+                    columns: "age income student credit_rating buys_computer",
+                    data: "<=30 high no fair no\n<=30 high no excellent no\n31...40 high no fair yes\n>40 medium no fair yes\n>40 low yes fair yes\n>40 low yes excellent no\n31...40 low yes excellent yes\n<=30 medium no fair no\n<=30 low yes fair yes\n>40 medium yes fair yes\n<=30 medium yes excellent yes\n31...40 medium no excellent yes\n31...40 high yes fair yes\n>40 medium no excellent no"
+                }
+            ];
+
+            const example = examples[exampleNumber - 1];
+            if (example) {
+                document.getElementById("inputColumns").value = example.columns;
+                document.getElementById("inputData").value = example.data;
+            }
+        }
+        function runID3() {
+            try{ $('html, body').animate({scrollTop: 150}, 250); }catch{}
+            const dataInput = document.getElementById('inputData').value;
+            const columnsInput = document.getElementById('inputColumns').value;
+            
+            if (!dataInput || !columnsInput) {
+                document.getElementById("output").innerText = "Please provide both dataset and column names!";
+                return;
+            }
+
+            const columns = columnsInput.split(/\s+/);
+            const rows = dataInput.split(/\n+/).map(row => row.split(/\s+/));
+    
+            const dataset = rows.map(row => Object.fromEntries(columns.map((col, i) => [col, row[i]])));
+    
+            const targetName = columns[columns.length - 1];
+            const targetValues = dataset.map(row => row[targetName]);
+    
+            const totalEntropy = entropy(targetValues);
+    
+            let output = "";
+            output += `Total ${totalEntropy.details}\n`;
+    
+            columns.slice(0, -1).forEach(col => {
+                output += `\n------- For Column '${col}' -------\n`;
+    
+                const columnValues = dataset.map(row => row[col]);
+                const columnEntropy = entropy(columnValues, targetValues);
+    
+                let infoGain = totalEntropy.value;
+                let infoDetailsStart = `${totalEntropy.value.toFixed(4)} - [`;
+                let infoDetailsEnd = ``;
+                
+                columnEntropy.entropies.forEach((subEnt) => {
+                    infoGain -= subEnt.prob * subEnt.value;
+                    infoDetailsEnd += ` +(${subEnt.num}/${subEnt.den}*${subEnt.value.toFixed(4)})`;
+                });
+                infoDetailsEnd = infoDetailsEnd.slice(2)+`]`;
+                let infoDetails = infoDetailsStart+infoDetailsEnd;
+    
+                output += columnEntropy.details;
+                output += `\n\nInformation Gain of '${col}': ${infoGain.toFixed(4)} = \t${infoDetails}\n`;
+            });
+    
+            document.getElementById('output').textContent = output;
+        }
+    </script>
+</body>
+</html>
